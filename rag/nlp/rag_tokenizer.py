@@ -27,6 +27,9 @@ from nltk import word_tokenize
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 from api.utils.file_utils import get_project_base_directory
 
+import nltk
+# 添加自定义 NLTK 数据路径
+nltk.data.path.append("/root/nltk_data/packages")
 
 class RagTokenizer:
     def key_(self, line):
