@@ -401,6 +401,29 @@ export const useRemoveNextDocument = () => {
   return { data, loading, removeDocument: mutateAsync };
 };
 
+export const useConvertDocument = () => {
+  const queryClient = useQueryClient();
+  const {
+    data,
+    isPending: loading,
+    mutateAsync,
+  } = useMutation({
+    mutationKey: ['convertDocument'],
+    mutationFn: async (documentIds: string | string[]) => {
+      const { data } = await kbService.document_convert({
+        doc_id: documentIds,
+      });
+      if (data.code === 0) {
+        message.success(i18n.t('message.converted'));
+        queryClient.invalidateQueries({ queryKey: ['fetchDocumentList'] });
+      }
+      return data.code;
+    },
+  });
+
+  return { data, loading, convertDocument: mutateAsync };
+};
+
 export const useDeleteDocument = () => {
   const {
     data,

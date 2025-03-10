@@ -1,5 +1,8 @@
 import { useShowDeleteConfirm, useTranslate } from '@/hooks/common-hooks';
-import { useRemoveNextDocument } from '@/hooks/document-hooks';
+import {
+  useConvertDocument,
+  useRemoveNextDocument,
+} from '@/hooks/document-hooks';
 import { IDocumentInfo } from '@/interfaces/database/document';
 import { downloadDocument } from '@/utils/file-util';
 import {
@@ -34,9 +37,20 @@ const ParsingActionCell = ({
   const isRunning = isParserRunning(record.run);
   const { t } = useTranslate('knowledgeDetails');
   const { removeDocument } = useRemoveNextDocument();
+  const { convertDocument } = useConvertDocument();
   const showDeleteConfirm = useShowDeleteConfirm();
   const isVirtualDocument = record.type === DocumentType.Virtual;
 
+  const onConvertDocument = () => {
+    if (!isRunning) {
+      showDeleteConfirm({
+        onOk: () => convertDocument([documentId]),
+        content: record?.parser_config?.graphrag?.use_graphrag
+          ? t('deleteDocumentConfirmContent')
+          : '',
+      });
+    }
+  };
   const onRmDocument = () => {
     if (!isRunning) {
       showDeleteConfirm({
@@ -125,6 +139,16 @@ const ParsingActionCell = ({
           type="text"
           disabled={isRunning}
           onClick={onRmDocument}
+          className={styles.iconButton}
+        >
+          <DeleteOutlined size={20} />
+        </Button>
+      </Tooltip>
+      <Tooltip title={t('convert to md', { keyPrefix: 'common' })}>
+        <Button
+          type="text"
+          disabled={isRunning}
+          onClick={onConvertDocument}
           className={styles.iconButton}
         >
           <DeleteOutlined size={20} />

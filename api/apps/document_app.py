@@ -47,7 +47,7 @@ from rag.utils.storage_factory import STORAGE_IMPL
 from api.utils.file_utils import filename_type, thumbnail, get_project_base_directory
 from api.utils.web_utils import html2pdf, is_valid_url
 from api.constants import IMG_BASE64_PREFIX
-
+import pypandoc
 
 @manager.route('/upload', methods=['POST'])  # noqa: F821
 @login_required
@@ -519,6 +519,7 @@ def get_image(image_id):
         return server_error_response(e)
 
 
+
 @manager.route('/upload_and_parse', methods=['POST'])  # noqa: F821
 @login_required
 @validate_request("conversation_id")
@@ -537,65 +538,101 @@ def upload_and_parse():
 
     return get_json_result(data=doc_ids)
 
-
-@manager.route('/parse', methods=['POST'])  # noqa: F821
+    
+#convert docx to markdown and store images in the same bucket
+@manager.route('/convert_docx_to_md', methods=['POST'])  # noqa: F821
 @login_required
-def parse():
-    url = request.json.get("url") if request.json else ""
-    if url:
-        if not is_valid_url(url):
-            return get_json_result(
-                data=False, message='The URL format is invalid', code=settings.RetCode.ARGUMENT_ERROR)
-        download_path = os.path.join(get_project_base_directory(), "logs/downloads")
-        os.makedirs(download_path, exist_ok=True)
-        from seleniumwire.webdriver import Chrome, ChromeOptions
-        options = ChromeOptions()
-        options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_experimental_option('prefs', {
-            'download.default_directory': download_path,
-            'download.prompt_for_download': False,
-            'download.directory_upgrade': True,
-            'safebrowsing.enabled': True
-        })
-        driver = Chrome(options=options)
-        driver.get(url)
-        res_headers = [r.response.headers for r in driver.requests if r and r.response]
-        if len(res_headers) > 1:
-            sections = RAGFlowHtmlParser().parser_txt(driver.page_source)
-            driver.quit()
-            return get_json_result(data="\n".join(sections))
-
-        class File:
-            filename: str
-            filepath: str
-
-            def __init__(self, filename, filepath):
-                self.filename = filename
-                self.filepath = filepath
-
-            def read(self):
-                with open(self.filepath, "rb") as f:
-                    return f.read()
-
-        r = re.search(r"filename=\"([^\"]+)\"", str(res_headers))
-        if not r or not r.group(1):
-            return get_json_result(
-                data=False, message="Can't not identify downloaded file", code=settings.RetCode.ARGUMENT_ERROR)
-        f = File(r.group(1), os.path.join(download_path, r.group(1)))
-        txt = FileService.parse_docs([f], current_user.id)
-        return get_json_result(data=txt)
-
-    if 'file' not in request.files:
+@validate_request("doc_id")
+def convert_docx_to_md():
+    req = request.json
+    if not DocumentService.accessible(req["doc_id"], current_user.id):
         return get_json_result(
-            data=False, message='No file part!', code=settings.RetCode.ARGUMENT_ERROR)
+            data=False,
+            message='No authorization.',
+            code=settings.RetCode.AUTHENTICATION_ERROR
+        )
+    
+    try:
+        # Get document information
+        doc_id = req["doc_id"][0]
+        e, doc = DocumentService.get_by_id(doc_id)
+        if not e:
+            return get_data_error_result(message="Document not found!")
+            
+        # Get file path from storage
+        bucket, file_path = File2DocumentService.get_storage_address(doc_id=doc_id)
+        docx_path = os.path.join(get_project_base_directory(), "temp", doc.name)
+        file_bin = STORAGE_IMPL.get(bucket, file_path, docx_path)
+        doc_media_path = os.path.join(get_project_base_directory(), "temp", doc_id)
 
-    file_objs = request.files.getlist('file')
-    txt = FileService.parse_docs(file_objs, current_user.id)
-
-    return get_json_result(data=txt)
+        # Convert docx to markdown
+        output = pypandoc.convert_file(
+            docx_path,
+            'md',
+            format='docx',
+            extra_args=['--standalone', '--extract-media', doc_media_path, '--wrap=none','--columns', '80' ,'--shift-heading-level-by', '1']
+        )
+        
+        # Handle images
+        # Get all image paths from the extracted media
+        image_paths = []
+        if os.path.exists(doc_media_path):
+            for root, dirs, files in os.walk(doc_media_path):
+                for file in files:
+                    image_path = os.path.join(root, file)
+                    image_paths.append(image_path)
+  
+        # Upload images to storage
+        uploaded_images = []
+        for img_path in image_paths:
+            img_name = f"{doc_id}/{os.path.basename(img_path)}"
+            with open(img_path, 'rb') as img_file:
+                binary_data = img_file.read()
+                STORAGE_IMPL.put(bucket, img_name, binary_data)
+                uploaded_images.append(img_name)
+            
+        # Replace image paths in markdown
+        for i, img_name in enumerate(uploaded_images):
+            placeholder = f"{image_paths[i]}"
+            replacement = f"{STORAGE_IMPL.get_prefix_url()}{os.path.join(bucket, img_name)}"
+            output = output.replace(placeholder, replacement)
+            
+        # Save markdown file
+        md_path = os.path.join(get_project_base_directory(), "temp", f"{doc.name}.md")
+        with open(md_path, 'w', encoding='utf-8') as f:
+            f.write(output)
+            
+        # Upload markdown to storage
+        md_location = f"{doc_id}/{os.path.basename(md_path)}"
+       
+        with open(md_path, 'rb') as md_file:
+            binary_data = md_file.read()
+            md_size = len(binary_data)
+            STORAGE_IMPL.put(bucket, md_location, binary_data)
+                
+        # Update document information
+        info = {}
+        info["name"] = f"{doc.name}.md"
+        info["location"] = md_location
+        info["type"] = FileType.MARKDOWN
+        info["size"] = md_size
+        e = DocumentService.update_by_id(doc.id, info)
+        
+        return get_json_result(data=True)
+        
+    except Exception as e:
+        # Clean up temporary files and uploaded images
+        try:
+            if os.path.exists(docx_path):
+                os.remove(docx_path)
+            if os.path.exists(md_path):
+                os.remove(md_path)
+            for img_path in image_paths:
+                if os.path.exists(img_path):
+                    os.remove(img_path)
+        except:
+            pass
+        return server_error_response(e)
 
 
 @manager.route('/set_meta', methods=['POST'])  # noqa: F821

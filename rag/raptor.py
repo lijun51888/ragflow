@@ -49,10 +49,14 @@ class RecursiveAbstractiveProcessing4TreeOrganizedRetrieval:
         response = get_embed_cache(self._embd_model.llm_name, txt)
         if response is not None:
             return response
-        embds, _ = self._embd_model.encode([txt])
-        if len(embds) < 1 or len(embds[0]) < 1:
-            raise Exception("Embedding error: ")
-        embds = embds[0]
+        try:
+            embds, _ = self._embd_model.encode([txt])
+            if len(embds) < 1 or len(embds[0]) < 1:
+                raise Exception("Embedding error: ")
+            embds = embds[0]
+        except Exception as e:
+            logging.error(f"Failed to encode text: {txt}. Error: {str(e)}")
+            raise
         set_embed_cache(self._embd_model.llm_name, txt, embds)
         return embds
 
@@ -79,7 +83,7 @@ class RecursiveAbstractiveProcessing4TreeOrganizedRetrieval:
             try:
                 texts = [chunks[i][0] for i in ck_idx]
                 len_per_chunk = int((self._llm_model.max_length - self._max_token) / len(texts))
-                cluster_content = "\n".join([truncate(t, max(1, len_per_chunk)) for t in texts])
+                cluster_content = "\n".join([truncate(t, max(1, len_per_chunk)) for t in texts if len(t) <= 1000])
                 async with chat_limiter:
                     cnt = await trio.to_thread.run_sync(lambda: self._chat("You're a helpful assistant.",
                                             [{"role": "user",
@@ -141,4 +145,3 @@ class RecursiveAbstractiveProcessing4TreeOrganizedRetrieval:
             end = len(chunks)
 
         return chunks
-

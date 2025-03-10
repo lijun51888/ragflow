@@ -126,6 +126,9 @@ dependencies = [
     "trio>=0.29.0",
 ]
 
+[tool.setuptools]
+packages = ["api"]
+
 [project.optional-dependencies]
 full = [
     "bcembedding==0.1.5",

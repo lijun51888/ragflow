@@ -33,6 +33,7 @@ from rag.nlp.search import index_name
 from rag.prompts import kb_prompt, message_fit_in, llm_id2llm_type, keyword_extraction, full_question, chunks_format
 from rag.utils import rmSpace, num_tokens_from_string
 from rag.utils.tavily_conn import Tavily
+from api.utils.string_utils import replace_template_placeholders
 
 
 class DialogService(CommonService):
@@ -234,7 +235,7 @@ def chat(dialog, messages, stream=True, **kwargs):
     kwargs["knowledge"] = "\n------\n" + "\n\n------\n\n".join(knowledges)
     gen_conf = dialog.llm_setting
 
-    msg = [{"role": "system", "content": prompt_config["system"].format(**kwargs)}]
+    msg = [{"role": "system", "content": replace_template_placeholders(prompt_config["system"],kwargs)}]
     msg.extend([{"role": m["role"], "content": re.sub(r"##\d+\$\$", "", m["content"])}
                 for m in messages if m["role"] != "system"])
     used_token_count, msg = message_fit_in(msg, int(max_tokens * 0.97))

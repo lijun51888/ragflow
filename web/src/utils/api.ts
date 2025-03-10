@@ -60,6 +60,7 @@ export default {
   get_document_list: `${api_host}/document/list`,
   document_change_status: `${api_host}/document/change_status`,
   document_rm: `${api_host}/document/rm`,
+  document_convert: `${api_host}/document/convert_docx_to_md`,
   document_delete: `${api_host}/api/document`,
   document_rename: `${api_host}/document/rename`,
   document_create: `${api_host}/document/create`,

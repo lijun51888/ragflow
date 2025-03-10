@@ -15,6 +15,7 @@
 #
 
 import logging
+import os
 import time
 from minio import Minio
 from minio.error import S3Error
@@ -82,11 +83,25 @@ class RAGFlowMinio:
         except Exception:
             logging.exception(f"Fail to remove {bucket}/{fnm}:")
 
-    def get(self, bucket, filename):
+    def get(self, bucket, filename, templatefile=None):
         for _ in range(1):
             try:
                 r = self.conn.get_object(bucket, filename)
-                return r.read()
+                data = r.read()
+                
+                if not data:
+                    raise ValueError(f"Empty file content for {bucket}/{filename}")
+                
+                if templatefile:
+                    os.makedirs(os.path.dirname(templatefile), exist_ok=True)
+                    try:
+                        with open(templatefile, 'wb') as f:
+                            f.write(data)
+                        logging.info(f"Successfully wrote template to {templatefile}")
+                    except Exception as e:
+                        logging.error(f"Failed to write template file {templatefile}: {str(e)}")
+                        raise ValueError("File write operation failed") from e
+                return data
             except Exception:
                 logging.exception(f"Fail to get {bucket}/{filename}")
                 self.__open__()
@@ -118,6 +133,9 @@ class RAGFlowMinio:
                 time.sleep(1)
         return
 
+    def get_prefix_url(self):
+        return f"http://{settings.MINIO['host']}/"
+
 
 MINIO = RAGFlowMinio()
 
@@ -129,7 +147,3 @@ if __name__ == "__main__":
     img = Image.open(fnm)
     buff = BytesIO()
     img.save(buff, format='JPEG')
-    print(conn.put("test", "11-408.jpg", buff.getvalue()))
-    bts = conn.get("test", "11-408.jpg")
-    img = Image.open(BytesIO(bts))
-    img.save("test.jpg")

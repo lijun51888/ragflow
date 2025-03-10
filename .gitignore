@@ -28,6 +28,7 @@ Cargo.lock
 # Exclude the log folder
 docker/ragflow-logs/
 /flask_session
+
 /logs
 rag/res/deepdoc
 
@@ -41,3 +42,8 @@ nltk_data/
 
 # Exclude hash-like temporary files like 9b5ad71b2ce5302211f9c61530b329a4922fc6a4
 *[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*
+
+/build
+/temp
+/ragflow.egg-info
+

@@ -29,6 +29,50 @@ import styles from './index.less';
 const reg = /(~{2}\d+={2})/g;
 // const curReg = /(~{2}\d+\${2})/g;
 
+// 自定义插件用于解析图片尺寸
+const remarkImageSize = () => {
+  const processNode = (node, index, parentChildren) => {
+    if (node.type === 'image') {
+      // 检查下一个节点是否为 text 类型且包含尺寸信息
+      if (index + 1 < parentChildren.length) {
+        const nextNode = parentChildren[index + 1];
+        if (nextNode.type === 'text') {
+          const match = nextNode.value.match(
+            /\{width="([^"]+)" height="([^"]+)"\}/,
+          );
+          if (match) {
+            const [, width, height] = match;
+            node.attributes = node.attributes || [];
+            node.attributes.push({
+              type: 'attribute',
+              name: 'width',
+              value: width,
+            });
+            node.attributes.push({
+              type: 'attribute',
+              name: 'height',
+              value: height,
+            });
+            // 移除包含尺寸信息的 text 节点
+            parentChildren.splice(index + 1, 1);
+          }
+        }
+      }
+    }
+    if (node.children && Array.isArray(node.children)) {
+      node.children.forEach((childNode, childIndex) =>
+        processNode(childNode, childIndex, node.children),
+      );
+    }
+  };
+
+  return (tree) => {
+    tree.children.forEach((node, index) =>
+      processNode(node, index, tree.children),
+    );
+  };
+};
+
 const getChunkIndex = (match: string) => Number(match.slice(2, -2));
 // TODO: The display of the table is inconsistent with the display previously placed in the MessageItem.
 const MarkdownContent = ({
@@ -191,13 +235,45 @@ const MarkdownContent = ({
     [getPopoverContent],
   );
 
+  // 自定义图片渲染组件
+  const ImageRenderer = ({ node }) => {
+    const attributes = {};
+    if (node.attributes) {
+      node.attributes.forEach((attr) => {
+        attributes[attr.name] = attr.value;
+      });
+    }
+    const convertToPx = (value) => {
+      if (typeof value === 'string' && value.endsWith('in')) {
+        // 假设 1 英寸 = 96 像素
+        const inches = parseFloat(value.slice(0, -2));
+        return `${inches * 96}px`;
+      }
+      return value;
+    };
+    const style = {
+      width: convertToPx(attributes.width) || 'auto',
+      height: convertToPx(attributes.height) || 'auto',
+    };
+    return (
+      <img
+        src={node.url}
+        alt={node.alt}
+        style={style}
+        className={styles.maxSize200}
+        {...attributes}
+      />
+    );
+  };
+
   return (
     <Markdown
       rehypePlugins={[rehypeWrapReference, rehypeKatex, rehypeRaw]}
-      remarkPlugins={[remarkGfm, remarkMath]}
+      remarkPlugins={[remarkGfm, remarkMath, remarkImageSize]}
       className={styles.markdownContentWrapper}
       components={
         {
+          image: ImageRenderer,
           'custom-typography': ({ children }: { children: string }) =>
             renderReference(children),
           code(props: any) {

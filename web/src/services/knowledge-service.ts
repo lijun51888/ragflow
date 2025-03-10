@@ -12,6 +12,7 @@ const {
   get_document_list,
   document_change_status,
   document_rm,
+  document_convert,
   document_delete,
   document_create,
   document_change_parser,
@@ -67,6 +68,10 @@ const methods = {
   },
   document_rm: {
     url: document_rm,
+    method: 'post',
+  },
+  document_convert: {
+    url: document_convert,
     method: 'post',
   },
   document_rename: {
