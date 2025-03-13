@@ -259,6 +259,7 @@ def chat_completion_openai_like(tenant_id, chat_id):
         # The choices field on the last chunk will always be an empty array [].
         def streamed_response_generator(chat_id, dia, msg):
             token_used = 0
+            should_split_index = 0
             response = {
                 "id": f"chatcmpl-{chat_id}",
                 "choices": [
@@ -284,8 +285,13 @@ def chat_completion_openai_like(tenant_id, chat_id):
             try:
                 for ans in chat(dia, msg, True):
                     answer = ans["answer"]
-                    incremental = answer[token_used:]
+                    incremental = answer[should_split_index:]
                     token_used += len(incremental)
+                    if incremental.endswith("</think>"):
+                        response_data_len = len(incremental.rstrip("</think>"))
+                    else:
+                        response_data_len = len(incremental)
+                    should_split_index += response_data_len
                     response["choices"][0]["delta"]["content"] = incremental
                     yield f"data:{json.dumps(response, ensure_ascii=False)}\n\n"
             except Exception as e:
@@ -365,6 +371,18 @@ def agent_completions(tenant_id, agent_id):
         conv = API4ConversationService.query(id=req["session_id"], dialog_id=agent_id)
         if not conv:
             return get_error_data_result(f"You don't own the session {req['session_id']}")
+        # If an update to UserCanvas is detected, update the API4Conversation.dsl
+        sync_dsl = req.get("sync_dsl", False)
+        if sync_dsl is True and cvs[0].update_time > conv[0].update_time:
+            current_dsl = conv[0].dsl
+            new_dsl = json.loads(dsl)
+            state_fields = ["history", "messages", "path", "reference"]
+            states = {field: current_dsl.get(field, []) for field in state_fields}
+            current_dsl.update(new_dsl)
+            current_dsl.update(states)
+            API4ConversationService.update_by_id(req["session_id"], {
+                "dsl": current_dsl
+            })
     else:
         req["question"] = ""
     if req.get("stream", True):

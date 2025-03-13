@@ -20,15 +20,12 @@ import random
 import sys
 
 from api.utils.log_utils import initRootLogger, get_project_base_directory
-from graphrag.general.index import WithCommunity, WithResolution, Dealer
-from graphrag.light.graph_extractor import GraphExtractor as LightKGExt
-from graphrag.general.graph_extractor import GraphExtractor as GeneralKGExt
+from graphrag.general.index import run_graphrag
 from graphrag.utils import get_llm_cache, set_llm_cache, get_tags_from_cache, set_tags_to_cache
 from rag.prompts import keyword_extraction, question_proposal, content_tagging
 
 CONSUMER_NO = "0" if len(sys.argv) < 2 else sys.argv[1]
 CONSUMER_NAME = "task_executor_" + CONSUMER_NO
-initRootLogger(CONSUMER_NAME)
 
 import logging
 import os
@@ -42,9 +39,10 @@ from io import BytesIO
 from multiprocessing.context import TimeoutError
 from timeit import default_timer as timer
 import tracemalloc
-import resource
 import signal
 import trio
+import exceptiongroup
+import faulthandler
 
 import numpy as np
 from peewee import DoesNotExist
@@ -118,7 +116,13 @@ def start_tracemalloc_and_snapshot(signum, frame):
     snapshot = tracemalloc.take_snapshot()
     snapshot.dump(snapshot_file)
     current, peak = tracemalloc.get_traced_memory()
-    max_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    if sys.platform == "win32":
+        import  psutil
+        process = psutil.Process()
+        max_rss = process.memory_info().rss / 1024
+    else:
+        import resource
+        max_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     logging.info(f"taken snapshot {snapshot_file}. max RSS={max_rss / 1000:.2f} MB, current memory usage: {current / 10**6:.2f} MB, Peak memory usage: {peak / 10**6:.2f} MB")
 
 # SIGUSR2 handler: stop tracemalloc
@@ -135,30 +139,35 @@ class TaskCanceledException(Exception):
 
 
 def set_progress(task_id, from_page=0, to_page=-1, prog=None, msg="Processing..."):
-    if prog is not None and prog < 0:
-        msg = "[ERROR]" + msg
-    cancel = TaskService.do_cancel(task_id)
+    try:
+        if prog is not None and prog < 0:
+            msg = "[ERROR]" + msg
+        cancel = TaskService.do_cancel(task_id)
 
-    if cancel:
-        msg += " [Canceled]"
-        prog = -1
+        if cancel:
+            msg += " [Canceled]"
+            prog = -1
 
-    if to_page > 0:
+        if to_page > 0:
+            if msg:
+                if from_page < to_page:
+                    msg = f"Page({from_page + 1}~{to_page + 1}): " + msg
         if msg:
-            if from_page < to_page:
-                msg = f"Page({from_page + 1}~{to_page + 1}): " + msg
-    if msg:
-        msg = datetime.now().strftime("%H:%M:%S") + " " + msg
-    d = {"progress_msg": msg}
-    if prog is not None:
-        d["progress"] = prog
+            msg = datetime.now().strftime("%H:%M:%S") + " " + msg
+        d = {"progress_msg": msg}
+        if prog is not None:
+            d["progress"] = prog
 
-    logging.info(f"set_progress({task_id}), progress: {prog}, progress_msg: {msg}")
-    TaskService.update_progress(task_id, d)
+        TaskService.update_progress(task_id, d)
 
-    close_connection()
-    if cancel:
-        raise TaskCanceledException(msg)
+        close_connection()
+        if cancel:
+            raise TaskCanceledException(msg)
+        logging.info(f"set_progress({task_id}), progress: {prog}, progress_msg: {msg}")
+    except DoesNotExist:
+        logging.warning(f"set_progress({task_id}) got exception DoesNotExist")
+    except Exception:
+        logging.exception(f"set_progress({task_id}), progress: {prog}, progress_msg: {msg}, got exception")
 
 async def collect():
     global CONSUMER_NAME, DONE_TASKS, FAILED_TASKS
@@ -453,24 +462,6 @@ async def run_raptor(row, chat_mdl, embd_mdl, vector_size, callback=None):
     return res, tk_count
 
 
-async def run_graphrag(row, chat_model, language, embedding_model, callback=None):
-    chunks = []
-    for d in settings.retrievaler.chunk_list(row["doc_id"], row["tenant_id"], [str(row["kb_id"])],
-                                             fields=["content_with_weight", "doc_id"]):
-        chunks.append((d["doc_id"], d["content_with_weight"]))
-
-    dealer = Dealer(LightKGExt if row["parser_config"]["graphrag"]["method"] != 'general' else GeneralKGExt,
-                    row["tenant_id"],
-                    str(row["kb_id"]),
-                    chat_model,
-                    chunks=chunks,
-                    language=language,
-                    entity_types=row["parser_config"]["graphrag"]["entity_types"],
-                    embed_bdl=embedding_model,
-                    callback=callback)
-    await dealer()
-
-
 async def do_handle_task(task):
     task_id = task["id"]
     task_from_page = task["from_page"]
@@ -526,24 +517,10 @@ async def do_handle_task(task):
             return
         start_ts = timer()
         chat_model = LLMBundle(task_tenant_id, LLMType.CHAT, llm_name=task_llm_id, lang=task_language)
-        await run_graphrag(task, chat_model, task_language, embedding_model, progress_callback)
-        progress_callback(prog=1.0, msg="Knowledge Graph basic is done ({:.2f}s)".format(timer() - start_ts))
-        if graphrag_conf.get("resolution", False):
-            start_ts = timer()
-            with_res = WithResolution(
-                task["tenant_id"], str(task["kb_id"]), chat_model, embedding_model,
-                progress_callback
-            )
-            await with_res()
-            progress_callback(prog=1.0, msg="Knowledge Graph resolution is done ({:.2f}s)".format(timer() - start_ts))
-        if graphrag_conf.get("community", False):
-            start_ts = timer()
-            with_comm = WithCommunity(
-                task["tenant_id"], str(task["kb_id"]), chat_model, embedding_model,
-                progress_callback
-            )
-            await with_comm()
-            progress_callback(prog=1.0, msg="Knowledge Graph community is done ({:.2f}s)".format(timer() - start_ts))
+        with_resolution = graphrag_conf.get("resolution", False)
+        with_community = graphrag_conf.get("community", False)
+        await run_graphrag(task, task_language, with_resolution, with_community, chat_model, embedding_model, progress_callback)
+        progress_callback(prog=1.0, msg="Knowledge Graph done ({:.2f}s)".format(timer() - start_ts))
         return
     else:
         # Standard chunking methods
@@ -622,7 +599,11 @@ async def handle_task():
         FAILED_TASKS += 1
         CURRENT_TASKS.pop(task["id"], None)
         try:
-            set_progress(task["id"], prog=-1, msg=f"[Exception]: {e}")
+            err_msg = str(e)
+            while isinstance(e, exceptiongroup.ExceptionGroup):
+                e = e.exceptions[0]
+                err_msg += ' -- ' + str(e)
+            set_progress(task["id"], prog=-1, msg=f"[Exception]: {err_msg}")
         except Exception:
             pass
         logging.exception(f"handle_task got exception for task {json.dumps(task)}")
@@ -673,8 +654,9 @@ async def main():
     logging.info(f'TaskExecutor: RAGFlow version: {get_ragflow_version()}')
     settings.init_settings()
     print_rag_settings()
-    signal.signal(signal.SIGUSR1, start_tracemalloc_and_snapshot)
-    signal.signal(signal.SIGUSR2, stop_tracemalloc)
+    if sys.platform != "win32":
+        signal.signal(signal.SIGUSR1, start_tracemalloc_and_snapshot)
+        signal.signal(signal.SIGUSR2, stop_tracemalloc)
     TRACE_MALLOC_ENABLED = int(os.environ.get('TRACE_MALLOC_ENABLED', "0"))
     if TRACE_MALLOC_ENABLED:
         start_tracemalloc_and_snapshot(None, None)
@@ -687,4 +669,6 @@ async def main():
     logging.error("BUG!!! You should not reach here!!!")
 
 if __name__ == "__main__":
+    faulthandler.enable()
+    initRootLogger(CONSUMER_NAME)
     trio.run(main)

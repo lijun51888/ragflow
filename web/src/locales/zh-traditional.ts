@@ -106,7 +106,8 @@ export default {
       processBeginAt: '流程開始於',
       processDuration: '過程持續時間',
       progressMsg: '進度消息',
-      testingDescription: '完成召回測試：確保你的設定可以從資料庫正確地召回文字區塊。請注意這裡的改動不會被自動保存。如果你調整了這裡的默認設置，比如關鍵詞相似度權重，請務必在聊天助手設置或者召回算子設置處同步更新相關設置。',
+      testingDescription:
+        '完成召回測試：確保你的設定可以從資料庫正確地召回文字區塊。請注意這裡的改動不會被自動保存。如果你調整了這裡的默認設置，比如關鍵詞相似度權重，請務必在聊天助手設置或者召回算子設置處同步更新相關設置。',
       similarityThreshold: '相似度閾值',
       similarityThresholdTip:
         '我們使用混合相似度得分來評估兩行文本之間的距離。它是加權關鍵詞相似度和向量餘弦相似度。如果查詢和塊之間的相似度小於此閾值，則該塊將被過濾掉。',
@@ -193,6 +194,7 @@ export default {
       deleteDocumentConfirmContent:
         '該文件與知識圖譜相關聯。刪除後，相關節點和關係資訊將被刪除，但圖不會立即更新。更新圖動作是在解析承載知識圖譜提取任務的新文件的過程中執行的。 ',
       plainText: 'Naive',
+      reRankModelWaring: '重排序模型非常耗時。',
     },
     knowledgeConfiguration: {
       titleDescription: '在這裡更新您的知識庫詳細信息，尤其是切片方法。',
@@ -340,15 +342,15 @@ export default {
       tagSet: '標籤庫',
       topnTags: 'Top-N 標籤',
       tagSetTip: `
- <p> 選擇「標籤」知識庫有助於標記每個區塊。 </p>
-<p>對這些區塊的查詢也將帶有標籤。
-此過程將透過向資料集添加更多資訊來提高檢索精度，特別是當存在大量區塊時。
-<p>標籤和關鍵字的差異：</p>
-<ul>
- <li>標籤是一個閉集，由使用者定義和操作，而關鍵字是一個開集。
- <li>您需要在使用前上傳包含範例的標籤集。
- <li>關鍵字由 LLM 生成，既昂貴又耗時。
-</ul>
+      <p>請選擇一個或多個標籤集或標籤知識庫，用於對知識庫中的每個文本塊進行標記。</p>
+      <p>對這些文本塊的查詢也將自動關聯相應標籤。</p>
+      <p>此功能基於文本相似度，能夠為數據集的文本塊批量添加更多領域知識，從而顯著提高檢索準確性。該功能還能提升大量文本塊的操作效率。</p>
+      <p>為了更好地理解標籤集的作用，以下是標籤集和關鍵詞之間的主要區別：</p>
+      <ul>
+        <li>標籤集是一個由用戶定義和管理的封閉集，而自動生成的關鍵詞屬於開放集合。</li>
+        <li>在給你的知識庫文本塊批量打標籤之前，你需要先生成標籤集作為樣本。</li>
+        <li>自動關鍵詞功能中的關鍵詞由 LLM 生成，此過程相對耗時，並且會產生一定的 Token 消耗。</li>
+      </ul>
  `,
       tags: '標籤',
       addTag: '增加標籤',
@@ -411,7 +413,7 @@ export default {
       knowledgeBases: '知識庫',
       knowledgeBasesMessage: '請選擇',
       knowledgeBasesTip: '選擇關聯的知識庫。',
-      system: '系統',
+      system: '系統提示词',
       systemInitialValue: `你是一個智能助手，請總結知識庫的內容來回答問題，請列舉知識庫中的數據詳細回答。當所有知識庫內容都與問題無關時，你的回答必須包括“知識庫中未找到您要的答案！”這句話。回答需要考慮聊天歷史。
       以下是知識庫：
       {knowledge}
@@ -423,9 +425,9 @@ export default {
       topNTip: `並非所有相似度得分高於“相似度閾值”的塊都會被提供給法學碩士。LLM 只能看到這些“Top N”塊。`,
       variable: '變量',
       variableTip: `如果您使用对话 API，变量可能会帮助您使用不同的策略与客户聊天。
-        这些变量用于填写提示中的“系统”部分，以便给LLM一个提示。
+        这些变量用于填写提示中的“系统提示词”部分，以便给LLM一个提示。
         “知识”是一个非常特殊的变量，它将用检索到的块填充。
-        “System”中的所有变量都应该用大括号括起来。`,
+        “系统提示词”中的所有变量都应该用大括号括起来。`,
       add: '新增',
       key: '關鍵字',
       optional: '可選的',
@@ -433,7 +435,7 @@ export default {
       model: '模型',
       modelTip: '大語言聊天模型',
       modelMessage: '請選擇',
-      freedom: '自由',
+      freedom: '自由度',
       improvise: '即興創作',
       precise: '精確',
       balance: '平衡',
@@ -579,7 +581,7 @@ export default {
       img2txtModel: 'img2Txt模型',
       img2txtModelTip:
         '所有新創建的知識庫都將使用默認的多模塊模型。它可以描述圖片或視頻。',
-      sequence2txtModel: 'sequence2Txt模型',
+      sequence2txtModel: 'speech2Txt模型',
       sequence2txtModelTip:
         '所有新創建的知識庫都將使用默認的 ASR 模型。使用此模型將語音翻譯為相應的文本。',
       rerankModel: 'rerank模型',

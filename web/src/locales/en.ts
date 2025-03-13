@@ -91,7 +91,7 @@ export default {
       namePlaceholder: 'Please input name!',
       doc: 'Docs',
       datasetDescription:
-        '😉 Please wait for your file to finish parsing before starting an AI-powered chat.',
+        '😉 Please wait for your files to finish parsing before starting an AI-powered chat.',
       addFile: 'Add file',
       searchFiles: 'Search your files',
       localFiles: 'Local files',
@@ -196,6 +196,7 @@ export default {
       deleteDocumentConfirmContent:
         'The document is associated with the knowledge graph. After deletion, the related node and relationship information will be deleted, but the graph will not be updated immediately. The update graph action is performed during the process of parsing the new document that carries the knowledge graph extraction task.',
       plainText: 'Naive',
+      reRankModelWaring: 'Re-rank model is very time consuming.',
     },
     knowledgeConfiguration: {
       titleDescription:
@@ -222,8 +223,8 @@ export default {
       english: 'English',
       chinese: 'Chinese',
       portugueseBr: 'Portuguese (Brazil)',
-      embeddingModelPlaceholder: 'Please select a embedding model',
-      chunkMethodPlaceholder: 'Please select a chunk method',
+      embeddingModelPlaceholder: 'Please select a embedding model.',
+      chunkMethodPlaceholder: 'Please select a chunk method.',
       save: 'Save',
       me: 'Only me',
       team: 'Team',
@@ -232,7 +233,7 @@ export default {
       methodExamples: 'Examples',
       methodExamplesDescription:
         'The following screenshots are provided for clarity.',
-      dialogueExamplesTitle: 'Dialogue examples',
+      dialogueExamplesTitle: 'view',
       methodEmpty:
         'This will display a visual explanation of the knowledge base categories',
       book: `<p>Supported file formats are <b>DOCX</b>, <b>PDF</b>, <b>TXT</b>.</p><p>
@@ -429,7 +430,7 @@ This auto-tag feature enhances retrieval by adding another layer of domain-speci
       knowledgeBasesMessage: 'Please select',
       knowledgeBasesTip:
         'Select the knowledge bases to associate with this chat assistant.',
-      system: 'System',
+      system: 'System prompt',
       systemInitialValue: `You are an intelligent assistant. Please summarize the content of the knowledge base to answer the question. Please list the data in the knowledge base and answer in detail. When all knowledge base content is irrelevant to the question, your answer must include the sentence "The answer you are looking for is not found in the knowledge base!" Answers need to consider chat history.
       Here is the knowledge base:
       {knowledge}
@@ -440,7 +441,7 @@ This auto-tag feature enhances retrieval by adding another layer of domain-speci
       topN: 'Top N',
       topNTip: `Not all chunks with similarity score above the 'similarity threshold' will be sent to the LLM. This selects 'Top N' chunks from the retrieved ones.`,
       variable: 'Variable',
-      variableTip: `Variables can assist in developing more flexible strategies, particularly when you are using our chat assistant management APIs. These variables will be used by 'System' as part of the prompts for the LLM. The variable {knowledge} is a reserved special variable representing your selected knowledge base(s), and all variables should be enclosed in curly braces {}.`,
+      variableTip: `Variables can assist in developing more flexible strategies, particularly when you are using our chat assistant management APIs. These variables will be used by 'System prompt' as part of the prompts for the LLM. The variable {knowledge} is a reserved special variable representing your selected knowledge base(s), and all variables should be enclosed in curly braces {}.`,
       add: 'Add',
       key: 'Key',
       optional: 'Optional',
@@ -604,7 +605,7 @@ This auto-tag feature enhances retrieval by adding another layer of domain-speci
       img2txtModel: 'Img2txt model',
       img2txtModelTip:
         'The default multi-module model all the newly created knowledgebase will use. It can describe a picture or video.',
-      sequence2txtModel: 'Sequence2txt model',
+      sequence2txtModel: 'Speech2txt model',
       sequence2txtModelTip:
         'The default ASR model all the newly created knowledgebase will use. Use this model to translate voices to corresponding text.',
       rerankModel: 'Rerank model',
