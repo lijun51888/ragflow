@@ -47,3 +47,4 @@ nltk_data/
 /temp
 /ragflow.egg-info
 
+.lh/
