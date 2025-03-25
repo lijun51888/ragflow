@@ -745,6 +745,20 @@ class UserCanvasVersion(DataBaseModel):
         db_table = "user_canvas_version"
 
 
+class RecommendQuestion(DataBaseModel):
+    id = CharField(max_length=32, primary_key=True)
+    question = CharField(max_length=255, null=False, help_text="question")
+    sys_code = CharField(max_length=32)
+    app_code = CharField(max_length=32)
+    user_code = CharField(max_length=32)
+    valid = CharField(max_length=10, default='Y')
+    chat_mode = CharField(max_length=255,default='KWG')
+    is_hot_question = CharField(max_length=10, default='N')
+    tenant_id = CharField(max_length=32,null=False,help_text="tenant id",index=True)
+    class Meta:
+        db_table = "recommend_question"
+    
+    
 def migrate_db():
     with DB.transaction():
         migrator = DatabaseMigrator[settings.DATABASE_TYPE.upper()].value(DB)
