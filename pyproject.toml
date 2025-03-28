@@ -127,9 +127,6 @@ dependencies = [
     "langfuse>=2.60.0",
 ]
 
-[tool.setuptools]
-packages = ["api"]
-
 [project.optional-dependencies]
 full = [
     "bcembedding==0.1.5",
