@@ -29,7 +29,7 @@ from nltk.stem import PorterStemmer, WordNetLemmatizer
 from api.utils.file_utils import get_project_base_directory
 
 # 添加自定义 NLTK 数据路径
-nltk.data.path.append("/root/nltk_data/packages")
+nltk.data.path.append("/root/ragflow/nltk_data/packages")
 
 # 添加自定义 NLTK 数据路径
 # nltk.data.path.append("/Users/lijun/Git/nltk_data/packages")
