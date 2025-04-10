@@ -164,13 +164,14 @@ export default {
       rerankTip:
         'Wenn leer gelassen, verwendet RAGFlow eine Kombination aus gewichteter Schlüsselwortähnlichkeit und gewichteter Vektorkosinus-Ähnlichkeit; wenn ein Neuordnungsmodell ausgewählt wird, ersetzt eine gewichtete Neuordnungsbewertung die gewichtete Vektorkosinus-Ähnlichkeit. Bitte beachten Sie, dass die Verwendung eines Neuordnungsmodells die Antwortzeit des Systems erheblich erhöht.',
       topK: 'Top-K',
-      topKTip: 'K Chunks werden in das Neuordnungsmodell eingespeist.',
+      topKTip:
+        'In Verbindung mit dem Rerank model wird mit dieser Einstellung die Anzahl der Textblöcke festgelegt, die an das angegebene reranking model gesendet werden.',
       delimiter: 'Trennzeichen für Textsegmentierung',
       delimiterTip:
         'Ein Trennzeichen oder Separator kann aus einem oder mehreren Sonderzeichen bestehen. Bei mehreren Zeichen stellen Sie sicher, dass sie in Backticks (` `) eingeschlossen sind. Wenn Sie beispielsweise Ihre Trennzeichen so konfigurieren: \\n`##`;, dann werden Ihre Texte an Zeilenumbrüchen, doppelten Rautenzeichen (##) oder Semikolons getrennt. Setzen Sie Trennzeichen nur nachdem Sie das Mechanismus der Textsegmentierung und -chunking verstanden haben.',
       html4excel: 'Excel zu HTML',
       html4excelTip:
-        'Wenn aktiviert, wird die Tabelle in HTML-Tabellen umgewandelt, mit maximal 256 Zeilen pro Tabelle. Andernfalls wird sie in Schlüssel-Wert-Paare nach Zeilen umgewandelt.',
+        'Verwenden Sie dies zusammen mit der General-Schnittmethode. Wenn deaktiviert, werden Tabellenkalkulationsdateien (XLSX, XLS (Excel97~2003)) zeilenweise in Schlüssel-Wert-Paare analysiert. Wenn aktiviert, werden Tabellenkalkulationsdateien in HTML-Tabellen umgewandelt. Wenn die ursprüngliche Tabelle mehr als 12 Zeilen enthält, teilt das System sie automatisch alle 12 Zeilen in mehrere HTML-Tabellen auf.',
       autoKeywords: 'Auto-Schlüsselwort',
       autoKeywordsTip:
         'Extrahieren Sie automatisch N Schlüsselwörter für jeden Abschnitt, um deren Ranking in Abfragen mit diesen Schlüsselwörtern zu verbessern. Beachten Sie, dass zusätzliche Tokens vom in den "Systemmodelleinstellungen" angegebenen Chat-Modell verbraucht werden. Sie können die hinzugefügten Schlüsselwörter eines Abschnitts in der Abschnittsliste überprüfen oder aktualisieren.',
@@ -334,7 +335,8 @@ export default {
       useRaptorTip:
         'Rekursive Abstrakte Verarbeitung für Baumorganisierten Abruf, weitere Informationen unter https://huggingface.co/papers/2401.18059.',
       prompt: 'Prompt',
-      promptTip: 'LLM-Prompt für die Zusammenfassung.',
+      promptTip:
+        'Verwenden Sie den Systemprompt, um die Aufgabe für das LLM zu beschreiben, festzulegen, wie es antworten soll, und andere verschiedene Anforderungen zu skizzieren. Der Systemprompt wird oft in Verbindung mit Schlüsseln (Variablen) verwendet, die als verschiedene Dateninputs für das LLM dienen. Verwenden Sie einen Schrägstrich `/` oder die (x)-Schaltfläche, um die zu verwendenden Schlüssel anzuzeigen.',
       promptMessage: 'Prompt ist erforderlich',
       promptText: `Bitte fassen Sie die folgenden Absätze zusammen. Seien Sie vorsichtig mit den Zahlen, erfinden Sie keine Dinge. Absätze wie folgt:
         {cluster_content}
@@ -355,7 +357,7 @@ export default {
       vietnamese: 'Vietnamesisch',
       pageRank: 'PageRank',
       pageRankTip:
-        'Dies erhöht den Relevanzwert der Wissensdatenbank. Sein Wert wird dem Relevanzwert aller abgerufenen Chunks aus dieser Wissensdatenbank hinzugefügt. Nützlich, wenn Sie innerhalb mehrerer Wissensdatenbanken suchen und einer bestimmten einen höheren PageRank-Wert zuweisen möchten.',
+        'Sie können während des Abrufs bestimmten Wissensdatenbanken eine höhere PageRank-Bewertung zuweisen. Die entsprechende Bewertung wird zu den hybriden Ähnlichkeitswerten der abgerufenen Chunks aus diesen Wissensdatenbanken addiert, wodurch deren Ranking erhöht wird. Weitere Informationen finden Sie unter https://ragflow.io/docs/dev/set_page_rank.',
       tagName: 'Tag',
       frequency: 'Häufigkeit',
       searchTags: 'Tags durchsuchen',
@@ -372,13 +374,14 @@ export default {
     <li>Sie müssen Tag-Sets in bestimmten Formaten hochladen, bevor Sie die Auto-Tag-Funktion ausführen.</li>
     <li>Die Auto-Schlüsselwort-Funktion ist vom LLM abhängig und verbraucht eine erhebliche Anzahl an Tokens.</li>
   </ul>
+  <p>Siehe https://ragflow.io/docs/dev/use_tag_sets für Details.</p>
         `,
       topnTags: 'Top-N Tags',
       tags: 'Tags',
       addTag: 'Tag hinzufügen',
       useGraphRag: 'Wissensgraph extrahieren',
       useGraphRagTip:
-        'Konstruieren Sie einen Wissensgraphen über extrahierte Datei-Chunks, um mehrschrittige Frage-Antwort-Prozesse zu verbessern.',
+        'Erstellen Sie einen Wissensgraph über Dateiabschnitte der aktuellen Wissensbasis, um die Beantwortung von Fragen mit mehreren Schritten und verschachtelter Logik zu verbessern. Weitere Informationen finden Sie unter https://ragflow.io/docs/dev/construct_knowledge_graph.',
       graphRagMethod: 'Methode',
       graphRagMethodTip: `Light: (Standard) Verwendet von github.com/HKUDS/LightRAG bereitgestellte Prompts, um Entitäten und Beziehungen zu extrahieren. Diese Option verbraucht weniger Tokens, weniger Speicher und weniger Rechenressourcen.</br>
           General: Verwendet von github.com/microsoft/graphrag bereitgestellte Prompts, um Entitäten und Beziehungen zu extrahieren`,
@@ -422,7 +425,7 @@ export default {
       sendPlaceholder: 'Nachricht an den Assistenten...',
       chatConfiguration: 'Chat-Konfiguration',
       chatConfigurationDescription:
-        'Richten Sie hier einen Chat-Assistenten ein, der für Ihre ausgewählten Wissensdatenbanken dediziert ist! 💕',
+        'Richten Sie einen Chat-Assistenten für die ausgewählten Datensätze (Wissensbasen) hier ein! 💕',
       assistantName: 'Assistentenname',
       assistantNameMessage: 'Assistentenname ist erforderlich',
       namePlaceholder: 'z.B. Lebenslauf-Jarvis',
@@ -452,7 +455,7 @@ export default {
         'Nicht alle Chunks mit einem Ähnlichkeitswert über dem "Ähnlichkeitsschwellenwert" werden an das LLM gesendet. Dies wählt die "Top N" Chunks aus den abgerufenen aus.',
       variable: 'Variable',
       variableTip:
-        'Variablen können bei der Entwicklung flexiblerer Strategien helfen, insbesondere wenn Sie unsere Chat-Assistenten-Management-APIs verwenden. Diese Variablen werden von "System" als Teil der Prompts für das LLM verwendet. Die Variable {knowledge} ist eine reservierte spezielle Variable, die Ihre ausgewählte(n) Wissensdatenbank(en) repräsentiert, und alle Variablen sollten in geschweifte Klammern {} eingeschlossen sein.',
+        'In Kombination mit den APIs zur Verwaltung von Chat-Assistenten von RAGFlow können Variablen dazu beitragen, flexiblere System-Prompt-Strategien zu entwickeln. Die definierten Variablen werden von „System-Prompt“ als Teil der Prompts für das LLM verwendet. {knowledge} ist eine spezielle reservierte Variable, die Teile darstellt, die aus den angegebenen Wissensbasen abgerufen werden, und alle Variablen sollten in geschweiften Klammern {} im „System-Prompt“ eingeschlossen werden. Weitere Informationen finden Sie unter https://ragflow.io/docs/dev/set_chat_variables.',
       add: 'Hinzufügen',
       key: 'Schlüssel',
       optional: 'Optional',
@@ -617,25 +620,25 @@ export default {
       baseUrlTip:
         'Wenn Ihr API-Schlüssel von OpenAI stammt, ignorieren Sie dies. Andere Zwischenanbieter geben diese Basis-URL mit dem API-Schlüssel an.',
       modify: 'Ändern',
-      systemModelSettings: 'Systemmodelleinstellungen',
+      systemModelSettings: 'Standardmodelle festlegen',
       chatModel: 'Chat-Modell',
       chatModelTip:
         'Das Standard-Chat-LLM, das alle neu erstellten Wissensdatenbanken verwenden werden.',
       embeddingModel: 'Embedding-Modell',
       embeddingModelTip:
-        'Das Standard-Embedding-Modell, das alle neu erstellten Wissensdatenbanken verwenden werden.',
+        'Das Standard-Einbettungsmodell für jede neu erstellte Wissensdatenbank. Wenn Sie kein Einbettungsmodell in der Dropdown-Liste finden, prüfen Sie, ob Sie die RAGFlow Slim Edition verwenden (die keine Einbettungsmodelle enthält), oder überprüfen Sie https://ragflow.io/docs/dev/supported_models, um zu sehen, ob Ihr Modellanbieter dieses Modell unterstützt.',
       img2txtModel: 'Img2txt-Modell',
       img2txtModelTip:
-        'Das Standard-Multimodul-Modell, das alle neu erstellten Wissensdatenbanken verwenden werden. Es kann ein Bild oder Video beschreiben.',
+        'Das Standardmodell img2txt für jede neu erstellte Wissensdatenbank. Es beschreibt ein Bild oder Video. Wenn Sie kein Modell im Dropdown-Menü finden können, überprüfen Sie https://ragflow.io/docs/dev/supported_models, um zu sehen, ob Ihr Modellanbieter dieses Modell unterstützt.',
       sequence2txtModel: 'Sequence2txt-Modell',
       sequence2txtModelTip:
-        'Das Standard-ASR-Modell, das alle neu erstellten Wissensdatenbanken verwenden werden. Verwenden Sie dieses Modell, um Stimmen in entsprechenden Text zu übersetzen.',
+        'Das Standard-ASR-Modell, das alle neu erstellten Wissensdatenbanken verwenden werden. Verwenden Sie dieses Modell, um Stimmen in entsprechenden Text zu übersetzen. Wenn Sie kein Modell im Dropdown-Menü finden können, überprüfen Sie https://ragflow.io/docs/dev/supported_models, um zu sehen, ob Ihr Modellanbieter dieses Modell unterstützt.',
       rerankModel: 'Rerank-Modell',
       rerankModelTip:
-        'Das Standard-Rerank-Modell wird verwendet, um Chunks neu zu ordnen, die durch Benutzerfragen abgerufen wurden.',
+        'Das Standard-Rerank-Modell zum Reranking von Textabschnitten. Wenn Sie kein Modell im Dropdown-Menü finden, überprüfen Sie https://ragflow.io/docs/dev/supported_models, um zu sehen, ob Ihr Modellanbieter dieses Modell unterstützt.',
       ttsModel: 'TTS-Modell',
       ttsModelTip:
-        'Das Standard-TTS-Modell wird verwendet, um auf Anfrage Sprache während Gesprächen zu generieren.',
+        'Das Standard-Text-to-Speech-Modell. Wenn Sie kein Modell im Dropdown-Menü finden, überprüfen Sie https://ragflow.io/docs/dev/supported_models, um zu sehen, ob Ihr Modellanbieter dieses Modell unterstützt.',
       workspace: 'Arbeitsbereich',
       upgrade: 'Upgrade',
       addLlmTitle: 'LLM hinzufügen',
@@ -725,6 +728,8 @@ export default {
       quit: 'Verlassen',
       sureQuit:
         'Sind Sie sicher, dass Sie das Team, dem Sie beigetreten sind, verlassen möchten?',
+      modelsToBeAddedTooltip:
+        'Wenn Ihr Modellanbieter nicht aufgeführt ist, aber behauptet, „OpenAI-kompatibel“ zu sein, wählen Sie die Karte OpenAI-API-compatible, um das/die entsprechende(n) Modell(e) hinzuzufügen.',
     },
     message: {
       registered: 'Registriert!',
