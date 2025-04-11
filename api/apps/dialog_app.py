@@ -144,8 +144,9 @@ def get_kb_names(kb_ids):
 @login_required
 def list_dialogs():
     try:
+        tenants = UserTenantService.get_tenants_by_user_id(current_user.id)
         diags = DialogService.query(
-            tenant_id=current_user.id,
+            tenant_id= [m["tenant_id"] for m in tenants],
             status=StatusEnum.VALID.value,
             reverse=True,
             order_by=DialogService.model.create_time)
