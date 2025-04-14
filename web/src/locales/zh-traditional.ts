@@ -396,6 +396,7 @@ export default {
       assistantSetting: '助理設置',
       promptEngine: '提示引擎',
       modelSetting: '模型設置',
+      qeustionSetting: '推荐问题设置',
       chat: '聊天',
       newChat: '新建聊天',
       send: '發送',
@@ -522,6 +523,9 @@ export default {
         '如果 API 金鑰設定正確，它將利用 Tavily 進行網路搜尋作為知識庫的補充。',
       tavilyApiKeyMessage: '請輸入你的 Tavily API Key',
       tavilyApiKeyHelp: '如何獲取？',
+      recommendquestion: '推荐问题',
+      question: '问题',
+      vaild: '生效',
     },
     setting: {
       profile: '概述',

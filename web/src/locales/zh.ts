@@ -410,9 +410,10 @@ General：实体和关系提取提示来自 GitHub - microsoft/graphrag：基于
     chat: {
       newConversation: '新会话',
       createAssistant: '新建助理',
-      assistantSetting: '助理设置',
+      assistantSettings: '助理设置',
       promptEngine: '提示引擎',
-      modelSetting: '模型设置',
+      modelSettings: '模型设置',
+      questionSettings: '推荐问题设置',
       chat: '聊天',
       newChat: '新建聊天',
       send: '发送',
@@ -539,6 +540,9 @@ General：实体和关系提取提示来自 GitHub - microsoft/graphrag：基于
         '如果 API 密钥设置正确，它将利用 Tavily 进行网络搜索作为知识库的补充。',
       tavilyApiKeyMessage: '请输入你的 Tavily API Key',
       tavilyApiKeyHelp: '如何获取？',
+      recommendquestion: '推荐问题',
+      question: '问题',
+      vaild: '生效',
     },
     setting: {
       profile: '概要',

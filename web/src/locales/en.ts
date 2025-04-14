@@ -407,6 +407,7 @@ This auto-tagging feature enhances retrieval by adding another layer of domain-s
       assistantSetting: 'Assistant settings',
       promptEngine: 'Prompt Engine',
       modelSetting: 'Model Setting',
+      qeustionSetting: 'Recommend Question Setting',
       chat: 'Chat',
       newChat: 'New chat',
       send: 'Send',
@@ -538,6 +539,9 @@ This auto-tagging feature enhances retrieval by adding another layer of domain-s
         'If an API key is correctly set here, Tavily-based web searches will be used to supplement knowledge base retrieval.',
       tavilyApiKeyMessage: 'Please enter your Tavily API Key',
       tavilyApiKeyHelp: 'How to get it?',
+      recommendquestion: 'Recommended Question',
+      question: 'question',
+      vaild: 'vaild',
     },
     setting: {
       profile: 'Profile',

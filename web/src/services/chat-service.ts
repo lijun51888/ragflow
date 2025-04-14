@@ -27,6 +27,10 @@ const {
   ask,
   mindmap,
   getRelatedQuestions,
+  getRecommendQuestions,
+  createRecommendQuestion,
+  deleteRecommendQuestion,
+  updateRecommendQuestion,
 } = api;
 
 const methods = {
@@ -125,6 +129,22 @@ const methods = {
   getRelatedQuestions: {
     url: getRelatedQuestions,
     method: 'post',
+  },
+  getRecommendQuestions: {
+    url: getRecommendQuestions,
+    method: 'get',
+  },
+  createRecommendQuestion: {
+    url: createRecommendQuestion,
+    method: 'post',
+  },
+  deleteRecommendQuestion: {
+    url: deleteRecommendQuestion,
+    method: 'delete',
+  },
+  updateRecommendQuestion: {
+    url: updateRecommendQuestion,
+    method: 'put',
   },
 } as const;
 

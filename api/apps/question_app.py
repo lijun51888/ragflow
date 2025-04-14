@@ -68,19 +68,52 @@ def create_recommendquestion():
             return get_data_error_result(message="Tenant not found!")
 
         tenant_id = tenants[0].tenant_id
+        id = req["id"]
         question = req["question"]
-        app_code = req["app_code"]
-        sys_code = req["sys_code"]
-        user_code = req["user_code"]
+        app_code = req.get("app_code", "")
+        sys_code = req.get("sys_code", "")
 
         recommendations = RecommendQuestionService.insert(
             tenant_id=tenant_id,
+            id=id,
             question=question,
             app_code=app_code,
             sys_code=sys_code,
-            user_code=user_code
+            user_code=current_user.id
         )
         return get_json_result(data=recommendations)
     except Exception as e:
         return server_error_response(e)
 
+@manager.route('/delete', methods=['DELETE'])  # noqa: F821
+@login_required
+@validate_request("id")
+def delete_llm():
+    req = request.json
+    try:
+        RecommendQuestionService.delete_by_id(req["id"])
+        return get_json_result(data=True)
+    except Exception as e:
+        return server_error_response(e)
+
+
+@manager.route('/update', methods=['PUT'])  # noqa: F821
+@login_required
+@validate_request("id")
+def change_status():
+    req = request.json
+    try:
+        e, question = RecommendQuestionService.get_by_id(req["id"])
+        if not e:
+            return get_data_error_result(message="Question not found!")
+        fields = {}
+        if "question" in req:
+            fields["question"] = req["question"]
+        if "valid" in req:
+            fields["valid"] = req["valid"]
+        if not RecommendQuestionService.update_by_id(
+                req["id"], fields):
+            return get_data_error_result(message="Question error (Question update)!")
+        return get_json_result(data=True)
+    except Exception as e:
+        return server_error_response(e)

@@ -17,6 +17,7 @@ import { IPromptConfigParameters } from '../interface';
 import AssistantSetting from './assistant-setting';
 import ModelSetting from './model-setting';
 import PromptEngine from './prompt-engine';
+import QuestionSetting from './question-setting';
 
 import styles from './index.less';
 
@@ -40,12 +41,14 @@ enum ConfigurationSegmented {
   AssistantSetting = 'Assistant settings',
   PromptEngine = 'Prompt engine',
   ModelSetting = 'Model settings',
+  QuestionSetting = 'Question settings',
 }
 
 const segmentedMap = {
   [ConfigurationSegmented.AssistantSetting]: AssistantSetting,
   [ConfigurationSegmented.ModelSetting]: ModelSetting,
   [ConfigurationSegmented.PromptEngine]: PromptEngine,
+  [ConfigurationSegmented.QuestionSetting]: QuestionSetting,
 };
 
 interface IProps extends IModalManagerChildrenProps {
@@ -183,6 +186,9 @@ const ChatConfigurationModal = ({
               : {})}
             {...(key === ConfigurationSegmented.PromptEngine
               ? { ref: promptEngineRef }
+              : {})}
+            {...(key === ConfigurationSegmented.QuestionSetting
+              ? { dialogId: initialDialog.id }
               : {})}
           ></Element>
         ))}

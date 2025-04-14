@@ -92,6 +92,10 @@ export default {
   ask: `${api_host}/conversation/ask`,
   mindmap: `${api_host}/conversation/mindmap`,
   getRelatedQuestions: `${api_host}/conversation/related_questions`,
+  getRecommendQuestions: `${api_host}/question/get`,
+  createRecommendQuestion: `${api_host}/question/create`,
+  updateRecommendQuestion: `${api_host}/question/update`,
+  deleteRecommendQuestion: `${api_host}/question/delete`,
   // chat for external
   createToken: `${api_host}/api/new_token`,
   listToken: `${api_host}/api/token_list`,

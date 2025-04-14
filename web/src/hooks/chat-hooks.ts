@@ -640,3 +640,81 @@ export const useFetchRelatedQuestions = () => {
   return { data, loading, fetchRelatedQuestions: mutateAsync };
 };
 //#endregion
+
+export const useFetchRecommendQuestions = () => {
+  const {
+    data,
+    isPending: loading,
+    mutateAsync,
+  } = useMutation({
+    mutationKey: ['fetchRecommendQuestions'],
+    gcTime: 0,
+    mutationFn: async (app_code: string): Promise<string[]> => {
+      const { data } = await chatService.getRecommendQuestions({ app_code });
+
+      return data?.data ?? [];
+    },
+  });
+
+  return { data, loading, fetchRecommendQuestions: mutateAsync };
+};
+
+export const useCreateRecommendQuestion = () => {
+  const {
+    data,
+    isPending: loading,
+    mutateAsync,
+  } = useMutation({
+    mutationKey: ['createRecommendQuestion'],
+    mutationFn: async (params: {
+      id: string;
+      question: string;
+      app_code: string;
+    }) => {
+      const { data } = await chatService.createRecommendQuestion(params);
+
+      return data;
+    },
+  });
+
+  return { data, loading, createRecommendQuestion: mutateAsync };
+};
+
+export const useDeleteRecommendQuestion = () => {
+  const {
+    data,
+    isPending: loading,
+    mutateAsync,
+  } = useMutation({
+    mutationKey: ['deleteRecommendQuestion'],
+    gcTime: 0,
+    mutationFn: async (id: string): Promise<string[]> => {
+      const { data } = await chatService.deleteRecommendQuestion({ id });
+
+      return data?.data ?? [];
+    },
+  });
+
+  return { data, loading, deleteRecommendQuestion: mutateAsync };
+};
+
+export const useUpdateRecommendQuestion = () => {
+  const {
+    data,
+    isPending: loading,
+    mutateAsync,
+  } = useMutation({
+    mutationKey: ['updateRecommendQuestion'],
+    mutationFn: async (params: {
+      id: string;
+      question?: string;
+      valid?: string;
+    }) => {
+      const { data } = await chatService.updateRecommendQuestion(params);
+
+      return data;
+    },
+  });
+
+  return { data, loading, updateRecommendQuestion: mutateAsync };
+};

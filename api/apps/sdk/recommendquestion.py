@@ -63,9 +63,9 @@ def create_recommendquestion(tenant_id):
     req = request.json
     try:
         question = req["question"]
-        app_code = req["app_code"]
-        sys_code = req["sys_code"]
-        user_code = req["user_code"]
+        app_code = req.get("app_code", "")
+        sys_code = req.get("sys_code", "")
+        user_code = req.get("user_code", "")
 
         recommendations = RecommendQuestionService.insert(
             tenant_id=tenant_id,
