@@ -62,10 +62,7 @@ export const useFetchTenantInfo = (
         // llm_id is chat_id
         // asr_id is speech2txt
         const { data } = res;
-        if (
-          showEmptyModelWarn &&
-          (isEmpty(data.embd_id) || isEmpty(data.llm_id))
-        ) {
+        if (false && (isEmpty(data.embd_id) || isEmpty(data.llm_id))) {
           Modal.warning({
             title: t('common.warn'),
             content: (
