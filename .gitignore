@@ -48,3 +48,4 @@ nltk_data/
 /ragflow.egg-info
 
 .lh/
+/node_modules
