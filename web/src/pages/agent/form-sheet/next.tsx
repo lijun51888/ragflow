@@ -17,7 +17,8 @@ import { useForm } from 'react-hook-form';
 import { BeginId, Operator, operatorMap } from '../constant';
 import { FlowFormContext } from '../context';
 import { RunTooltip } from '../flow-tooltip';
-import { useHandleFormValuesChange, useHandleNodeNameChange } from '../hooks';
+import { useHandleNodeNameChange } from '../hooks';
+import { useHandleFormValuesChange } from '../hooks/use-watch-form-change';
 import OperatorIcon from '../operator-icon';
 import {
   buildCategorizeListFromObject,
@@ -85,6 +86,7 @@ const FormSheet = ({
         const formData = node?.data?.form;
         if (isPlainObject(formData)) {
           //   form.setFieldsValue({ ...formData, items });
+          console.info('xxx');
           form.reset({ ...formData, items });
         }
       } else {
@@ -98,7 +100,7 @@ const FormSheet = ({
   return (
     <Sheet open={visible} modal={false}>
       <SheetTitle className="hidden"></SheetTitle>
-      <SheetContent className={cn('bg-white top-20 p-0')} closeIcon={false}>
+      <SheetContent className={cn('top-20 p-0')} closeIcon={false}>
         <SheetHeader>
           <section className="flex-col border-b py-2 px-5">
             <div className="flex items-center gap-2 pb-3">

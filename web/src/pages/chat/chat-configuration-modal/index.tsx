@@ -38,9 +38,9 @@ const validateMessages = {
 };
 
 enum ConfigurationSegmented {
-  AssistantSetting = 'Assistant settings',
-  PromptEngine = 'Prompt engine',
-  ModelSetting = 'Model settings',
+  AssistantSetting = 'Assistant Setting',
+  PromptEngine = 'Prompt Engine',
+  ModelSetting = 'Model Setting',
   QuestionSetting = 'Question settings',
 }
 
@@ -145,6 +145,18 @@ const ChatConfigurationModal = ({
     }
   }, [initialDialog, form, visible, modelId]);
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Allow Enter in textareas
+    if (e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleOk();
+    }
+  };
+
   return (
     <Modal
       title={title}
@@ -174,6 +186,7 @@ const ChatConfigurationModal = ({
         style={{ maxWidth: 600 }}
         validateMessages={validateMessages}
         colon={false}
+        onKeyDown={handleKeyDown}
       >
         {Object.entries(segmentedMap).map(([key, Element]) => (
           <Element

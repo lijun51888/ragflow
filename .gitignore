@@ -49,3 +49,5 @@ nltk_data/
 
 .lh/
 /node_modules
+.venv
+docker/data

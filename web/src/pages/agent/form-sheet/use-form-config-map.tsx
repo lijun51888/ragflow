@@ -1,3 +1,4 @@
+import { CodeTemplateStrMap, ProgrammingLanguage } from '@/constants/agent';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { Operator } from '../constant';
@@ -9,6 +10,7 @@ import BaiduForm from '../form/baidu-form';
 import BeginForm from '../form/begin-form';
 import BingForm from '../form/bing-form';
 import CategorizeForm from '../form/categorize-form';
+import CodeForm from '../form/code-form';
 import CrawlerForm from '../form/crawler-form';
 import DeepLForm from '../form/deepl-form';
 import DuckDuckGoForm from '../form/duckduckgo-form';
@@ -128,6 +130,21 @@ export function useFormConfigMap() {
         llm_id: z.string(),
         message_history_window_size: z.number(),
         language: z.string(),
+      }),
+    },
+    [Operator.Code]: {
+      component: CodeForm,
+      defaultValues: {
+        lang: ProgrammingLanguage.Python,
+        script: CodeTemplateStrMap[ProgrammingLanguage.Python],
+        arguments: [],
+      },
+      schema: z.object({
+        lang: z.string(),
+        script: z.string(),
+        arguments: z.array(
+          z.object({ name: z.string(), component_id: z.string() }),
+        ),
       }),
     },
     [Operator.Baidu]: {
